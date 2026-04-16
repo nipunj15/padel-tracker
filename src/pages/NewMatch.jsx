@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import PlayerInput from '../components/PlayerInput'
+import BottomNav from '../components/BottomNav'
 
 const EMPTY_PLAYER = { id: null, name: '' }
 
@@ -113,6 +114,7 @@ export default function NewMatch() {
           tiebreak_point_team1: 0,
           tiebreak_point_team2: 0,
           point_history: [],
+          game_history: [],
         })
         .select()
         .single()
@@ -127,7 +129,7 @@ export default function NewMatch() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4">
+    <div className="min-h-screen bg-slate-50 p-4 pb-24">
       <div className="max-w-md mx-auto">
         <Link to="/" className="text-teal-600 text-sm font-medium mb-6 inline-block">
           &larr; Back
@@ -221,6 +223,8 @@ export default function NewMatch() {
           {loading ? 'Starting...' : 'Start Match'}
         </button>
       </div>
+
+      <BottomNav />
     </div>
   )
 }

@@ -52,6 +52,7 @@ export default function LiveMatch() {
         tiebreak_point_team1: state.tiebreak_point_team1,
         tiebreak_point_team2: state.tiebreak_point_team2,
         point_history: state.point_history,
+        game_history: state.game_history || [],
         status: state.status,
         winner_team: state.winner_team,
         started_at: state.started_at,

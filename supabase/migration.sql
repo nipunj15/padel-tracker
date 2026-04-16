@@ -27,6 +27,7 @@ create table if not exists matches (
   tiebreak_point_team1 integer not null default 0,
   tiebreak_point_team2 integer not null default 0,
   point_history jsonb not null default '[]',
+  game_history jsonb not null default '[]',
   created_at timestamptz default now(),
   started_at timestamptz,
   completed_at timestamptz

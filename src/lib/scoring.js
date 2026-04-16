@@ -3,6 +3,10 @@
  *
  * Point values: 0=0, 1=15, 2=30, 3=40, 4=Advantage
  * Tiebreak uses raw point counts instead.
+ *
+ * game_history: array of { set, game, winner_team, score_before }
+ *   score_before is the game score when this game was won, e.g. "3-2" meaning
+ *   the winner took it from 3-2 to 4-2 (or whatever the new count is).
  */
 
 const POINT_LABELS = ['0', '15', '30', '40']
@@ -48,19 +52,15 @@ function createSnapshot(match) {
     tiebreak_point_team2: match.tiebreak_point_team2,
     status: match.status,
     winner_team: match.winner_team,
+    game_history: match.game_history ? [...match.game_history] : [],
   }
 }
 
 /**
  * Main scoring function. Returns a new match state after awarding a point to the given team.
  * Does NOT mutate the input.
- *
- * @param {object} match - current match state
- * @param {1|2} team - team that scored (1 or 2)
- * @returns {object} new match state
  */
 export function scorePoint(match, team) {
-  // Don't score on completed/abandoned matches
   if (match.status !== 'in_progress') return match
 
   const next = {
@@ -70,9 +70,9 @@ export function scorePoint(match, team) {
       ...match.point_history,
       createSnapshot(match),
     ],
+    game_history: match.game_history ? [...match.game_history] : [],
   }
 
-  // Set started_at on first point
   if (!next.started_at) {
     next.started_at = new Date().toISOString()
   }
@@ -90,29 +90,23 @@ function scoreStandardPoint(match, team) {
   const myPoints = match[myKey]
   const oppPoints = match[oppKey]
 
-  // Both at 40+ (deuce territory)
   if (myPoints >= 3 && oppPoints >= 3) {
     if (myPoints === 4) {
-      // Had advantage, wins the game
       return winGame(match, team)
     }
     if (oppPoints === 4) {
-      // Opponent had advantage, back to deuce
       match[myKey] = 3
       match[oppKey] = 3
       return match
     }
-    // Both at 40 (deuce), scorer gets advantage
     match[myKey] = 4
     return match
   }
 
-  // At 40 (not deuce), wins the game
   if (myPoints === 3) {
     return winGame(match, team)
   }
 
-  // Normal point progression: 0->1, 1->2, 2->3
   match[myKey] = myPoints + 1
   return match
 }
@@ -126,7 +120,6 @@ function scoreTiebreakPoint(match, team) {
   const myPoints = match[myKey]
   const oppPoints = match[oppKey]
 
-  // First to 7, win by 2
   if (myPoints >= 7 && myPoints - oppPoints >= 2) {
     return winTiebreak(match, team)
   }
@@ -135,13 +128,24 @@ function scoreTiebreakPoint(match, team) {
 }
 
 function winTiebreak(match, team) {
-  // The tiebreak winner wins the set 7-6
   const setIndex = match.current_set - 1
 
-  // Ensure the set entry exists
   if (!match.sets[setIndex]) {
     match.sets[setIndex] = { team1_games: 6, team2_games: 6 }
   }
+
+  // Record tiebreak as a game in history
+  const t1 = match.sets[setIndex].team1_games
+  const t2 = match.sets[setIndex].team2_games
+  const gameNum = t1 + t2 + 1 - 12 + 1 // game number within the tiebreak context
+  match.game_history.push({
+    set: match.current_set,
+    game: t1 + t2 - 11, // game 13 in the set = game 1 of tiebreak display
+    winner_team: team,
+    is_tiebreak: true,
+    tiebreak_score: `${match.tiebreak_point_team1}-${match.tiebreak_point_team2}`,
+    score_before: `${t1}-${t2}`,
+  })
 
   if (team === 1) {
     match.sets[setIndex].team1_games = 7
@@ -149,7 +153,6 @@ function winTiebreak(match, team) {
     match.sets[setIndex].team2_games = 7
   }
 
-  // Reset tiebreak state
   match.is_tiebreak = false
   match.tiebreak_point_team1 = 0
   match.tiebreak_point_team2 = 0
@@ -160,15 +163,26 @@ function winTiebreak(match, team) {
 function winGame(match, team) {
   const setIndex = match.current_set - 1
 
-  // Ensure the set entry exists
   if (!match.sets[setIndex]) {
     match.sets[setIndex] = { team1_games: 0, team2_games: 0 }
   }
 
+  // Record the game score BEFORE incrementing
+  const t1Before = match.sets[setIndex].team1_games
+  const t2Before = match.sets[setIndex].team2_games
+  const gameNumber = t1Before + t2Before + 1
+
+  match.game_history.push({
+    set: match.current_set,
+    game: gameNumber,
+    winner_team: team,
+    is_tiebreak: false,
+    score_before: `${t1Before}-${t2Before}`,
+  })
+
   const gameKey = team === 1 ? 'team1_games' : 'team2_games'
   match.sets[setIndex][gameKey] += 1
 
-  // Reset point counters
   match.current_point_team1 = 0
   match.current_point_team2 = 0
 
@@ -177,7 +191,6 @@ function winGame(match, team) {
   const myGames = team === 1 ? t1Games : t2Games
   const oppGames = team === 1 ? t2Games : t1Games
 
-  // Check if this triggers a tiebreak
   if (t1Games === 6 && t2Games === 6) {
     match.is_tiebreak = true
     match.tiebreak_point_team1 = 0
@@ -185,7 +198,6 @@ function winGame(match, team) {
     return match
   }
 
-  // Check if set is won (first to 6, win by 2)
   if (myGames >= 6 && myGames - oppGames >= 2) {
     return winSet(match, team)
   }
@@ -194,7 +206,6 @@ function winGame(match, team) {
 }
 
 function winSet(match, team) {
-  // Count sets won by each team
   let team1Sets = 0
   let team2Sets = 0
 
@@ -203,7 +214,6 @@ function winSet(match, team) {
     else if (set.team2_games > set.team1_games) team2Sets++
   }
 
-  // Best of 3: first to 2 sets wins
   if ((team === 1 && team1Sets >= 2) || (team === 2 && team2Sets >= 2)) {
     match.status = 'completed'
     match.winner_team = team
@@ -211,7 +221,6 @@ function winSet(match, team) {
     return match
   }
 
-  // Start next set
   match.current_set += 1
   match.current_point_team1 = 0
   match.current_point_team2 = 0
@@ -232,7 +241,6 @@ export function undoPoint(match) {
     ...match,
     ...snapshot,
     point_history: history,
-    // Preserve identity fields
     id: match.id,
     format: match.format,
     team1_player_ids: match.team1_player_ids,
@@ -266,6 +274,7 @@ export function createInitialMatchState({ format, team1_player_ids, team2_player
     tiebreak_point_team1: 0,
     tiebreak_point_team2: 0,
     point_history: [],
+    game_history: [],
     started_at: null,
     completed_at: null,
   }

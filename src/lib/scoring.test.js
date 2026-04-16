@@ -339,6 +339,52 @@ describe('Undo', () => {
   })
 })
 
+describe('Game history tracking', () => {
+  it('records game history entries when games are won', () => {
+    let m = makeMatch()
+    m = winGame(m, 1) // game 1 won by team 1
+    m = winGame(m, 2) // game 2 won by team 2
+
+    expect(m.game_history.length).toBe(2)
+    expect(m.game_history[0].set).toBe(1)
+    expect(m.game_history[0].game).toBe(1)
+    expect(m.game_history[0].winner_team).toBe(1)
+    expect(m.game_history[0].score_before).toBe('0-0')
+    expect(m.game_history[1].game).toBe(2)
+    expect(m.game_history[1].winner_team).toBe(2)
+    expect(m.game_history[1].score_before).toBe('1-0')
+  })
+
+  it('tracks games across sets', () => {
+    let m = makeMatch()
+    m = winGames(m, 1, 6) // set 1: 6-0
+    m = winGame(m, 2)      // set 2, game 1
+
+    expect(m.game_history.length).toBe(7)
+    // Last entry should be set 2, game 1
+    const last = m.game_history[6]
+    expect(last.set).toBe(2)
+    expect(last.game).toBe(1)
+    expect(last.winner_team).toBe(2)
+  })
+
+  it('reverts game_history on undo', () => {
+    let m = makeMatch()
+    m = scoreN(m, 1, 3) // 40-0
+    m = scorePoint(m, 1) // game won → game_history has 1 entry
+
+    expect(m.game_history.length).toBe(1)
+
+    m = undoPoint(m) // undo the game-winning point
+    expect(m.game_history.length).toBe(0)
+  })
+
+  it('starts with empty game_history', () => {
+    const m = makeMatch()
+    expect(m.game_history).toEqual([])
+  })
+})
+
 describe('getCurrentSetScore', () => {
   it('returns 0-0 for a fresh match', () => {
     const m = makeMatch()
