@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Padel racquet -->
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <!-- Handle -->
+  <rect x="28" y="42" width="8" height="18" rx="3" fill="#92400e"/>
+  <rect x="29" y="46" width="6" height="10" rx="2" fill="#b45309"/>
+  <!-- Racquet head -->
+  <ellipse cx="32" cy="26" rx="16" ry="20" fill="url(#g)" stroke="#1e40af" stroke-width="2"/>
+  <!-- String grid - vertical -->
+  <line x1="24" y1="10" x2="24" y2="42" stroke="#93c5fd" stroke-width="0.8" opacity="0.6"/>
+  <line x1="28" y1="7" x2="28" y2="44" stroke="#93c5fd" stroke-width="0.8" opacity="0.6"/>
+  <line x1="32" y1="6" x2="32" y2="45" stroke="#93c5fd" stroke-width="0.8" opacity="0.6"/>
+  <line x1="36" y1="7" x2="36" y2="44" stroke="#93c5fd" stroke-width="0.8" opacity="0.6"/>
+  <line x1="40" y1="10" x2="40" y2="42" stroke="#93c5fd" stroke-width="0.8" opacity="0.6"/>
+  <!-- String grid - horizontal -->
+  <line x1="17" y1="16" x2="47" y2="16" stroke="#93c5fd" stroke-width="0.8" opacity="0.6"/>
+  <line x1="16" y1="21" x2="48" y2="21" stroke="#93c5fd" stroke-width="0.8" opacity="0.6"/>
+  <line x1="16" y1="26" x2="48" y2="26" stroke="#93c5fd" stroke-width="0.8" opacity="0.6"/>
+  <line x1="16" y1="31" x2="48" y2="31" stroke="#93c5fd" stroke-width="0.8" opacity="0.6"/>
+  <line x1="17" y1="36" x2="47" y2="36" stroke="#93c5fd" stroke-width="0.8" opacity="0.6"/>
+  <!-- Ball -->
+  <circle cx="50" cy="12" r="7" fill="#a3e635"/>
+  <path d="M44.5 8.5 Q50 12 44.5 15.5" fill="none" stroke="#65a30d" stroke-width="1.2"/>
+  <path d="M55.5 8.5 Q50 12 55.5 15.5" fill="none" stroke="#65a30d" stroke-width="1.2"/>
+</svg>
