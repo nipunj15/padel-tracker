@@ -2,6 +2,8 @@
 
 A mobile-first web app for tracking padel matches in real time, storing match history, and maintaining a leaderboard for a group of players.
 
+**Live at [padel.nipunj.com](https://padel.nipunj.com/)**
+
 ## Features
 
 - **Live scoring** — large tap-friendly buttons for courtside use, 2-second undo grace period
